@@ -4,10 +4,11 @@ require("dotenv").config();
 
 const app = express();
 
-app.get("/:endpoint*", async (req, res) => {
+// Usiamo una RegEx pura (.*) che cattura TUTTO quello che viene dopo la barra iniziale
+app.get(/^\/(.*)/, async (req, res) => {
     try {
-        // Recupera l'endpoint completo combinando il primo parametro con il resto della rotta catturata
-        const endpoint = req.params.endpoint + (req.params[0] || "");
+        // req.params[0] conterrà l'intero percorso (es. "players/%23TAG" o "clans/%23TAG")
+        const endpoint = req.params[0];
         
         // Mantiene intatti eventuali parametri di ricerca (es. ?name=ClanName)
         const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
@@ -29,4 +30,4 @@ app.get("/:endpoint*", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log("Server avviato"));
+app.listen(PORT, () => console.log(`Server avviato sulla porta ${PORT}`));
