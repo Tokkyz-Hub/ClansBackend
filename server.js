@@ -1,31 +1,31 @@
 const express = require("express");
 const axios = require("axios");
-const cors = require("cors");
+const cors = require("cors"); // <-- Questa è la riga che mancava!
 require("dotenv").config();
 
 const app = express();
 
+// Abilita i CORS per permettere alla tua app di comunicare con il server
 app.use(cors());
 app.use(express.json());
 
-// Usiamo una RegEx pura (.*) che cattura TUTTO quello che viene dopo la barra iniziale
+// ROTTA UNIVERSALE PROXY
 app.get("/proxy", async (req, res) => {
     try {
-        // req.params[0] conterrà l'intero percorso (es. "players/%23TAG" o "clans/%23TAG")
         const endpoint = req.query.endpoint;
-        
+
         if (!endpoint) {
             return res.status(400).json({ error: "Parametro 'endpoint' mancante" });
         }
 
-        const response = await axios.get(
-            `https://cocproxy.royaleapi.dev/v1${endpoint}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${process.env.CLASH_TOKEN}`
-                }
+        // Uniamo il proxy con /v1 fisso e l'endpoint inviato dall'app
+        const urlCompleto = `https://cocproxy.royaleapi.dev/v1${endpoint}`;
+
+        const response = await axios.get(urlCompleto, {
+            headers: {
+                Authorization: `Bearer ${process.env.CLASH_TOKEN}`
             }
-        );
+        });
 
         res.json(response.data);
 
@@ -35,4 +35,4 @@ app.get("/proxy", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Server avviato sulla porta ${PORT}`));
+app.listen(PORT, () => console.log(`Proxy universale avviato sulla porta ${PORT}`));
