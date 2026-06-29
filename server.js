@@ -4,11 +4,16 @@ require("dotenv").config();
 
 const app = express();
 
-app.get("/*", async (req, res) => {
+app.get("/:endpoint*", async (req, res) => {
     try {
-        const endpoint = req.params[0];
+        // Recupera l'endpoint completo combinando il primo parametro con il resto della rotta catturata
+        const endpoint = req.params.endpoint + (req.params[0] || "");
+        
+        // Mantiene intatti eventuali parametri di ricerca (es. ?name=ClanName)
+        const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+
         const response = await axios.get(
-            `https://cocproxy.royaleapi.dev/v1/${endpoint}`,
+            `https://cocproxy.royaleapi.dev/v1/${endpoint}${queryString}`,
             {
                 headers: {
                     Authorization: `Bearer ${process.env.CLASH_TOKEN}`
