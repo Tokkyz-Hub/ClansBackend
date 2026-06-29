@@ -14,7 +14,7 @@ app.get(/^\/(.*)/, async (req, res) => {
         const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
 
         const response = await axios.get(
-            `https://cocproxy.royaleapi.dev/v1/${endpoint}${queryString}`,
+            `https://api.clashking.xyz/v1/${endpoint}${queryString}`,
             {
                 headers: {
                     Authorization: `Bearer ${process.env.CLASH_TOKEN}`
