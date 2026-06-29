@@ -4,17 +4,21 @@ require("dotenv").config();
 
 const app = express();
 
+app.use(cors());
+app.use(express.json());
+
 // Usiamo una RegEx pura (.*) che cattura TUTTO quello che viene dopo la barra iniziale
-app.get(/^\/(.*)/, async (req, res) => {
+app.get("/proxy", async (req, res) => {
     try {
         // req.params[0] conterrà l'intero percorso (es. "players/%23TAG" o "clans/%23TAG")
-        const endpoint = req.params[0];
+        const endpoint = req.query.endpoint;
         
-        // Mantiene intatti eventuali parametri di ricerca (es. ?name=ClanName)
-        const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+        if (!endpoint) {
+            return res.status(400).json({ error: "Parametro 'endpoint' mancante" });
+        }
 
         const response = await axios.get(
-            `https://api.clashking.xyz/v1/${endpoint}${queryString}`,
+            `https://cocproxy.royaleapi.dev/v1${endpoint}`,
             {
                 headers: {
                     Authorization: `Bearer ${process.env.CLASH_TOKEN}`
