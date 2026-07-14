@@ -13,7 +13,40 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     hasToken: Boolean(process.env.CLASH_TOKEN),
+    whitelistCount: parseAllowedTags().length,
   });
+});
+
+// Normalizza un tag clan/giocatore: maiuscolo, spazi via, "#" iniziale.
+function normalizeTag(value) {
+  const clean = String(value || "").trim().toUpperCase().replace(/\s+/g, "");
+  if (!clean) return "";
+  return clean.startsWith("#") ? clean : `#${clean}`;
+}
+
+// Legge la whitelist dalla variabile d'ambiente ALLOWED_CLAN_TAGS, una
+// lista di tag separati da virgola, es: "#ABC123,#XYZ789". Modificabile
+// su Render (Settings -> Environment) senza dover ricompilare l'app.
+function parseAllowedTags() {
+  return String(process.env.ALLOWED_CLAN_TAGS || "")
+    .split(",")
+    .map((t) => normalizeTag(t))
+    .filter(Boolean);
+}
+
+// ROTTA WHITELIST: l'app la interroga prima di consentire l'uso, sia in
+// fase di configurazione iniziale sia ad ogni aggiornamento dati. Se
+// ALLOWED_CLAN_TAGS non è impostata, la whitelist è considerata non
+// attiva e tutti i clan sono ammessi (comodo per non bloccarsi durante
+// il primo deploy di questa funzione).
+app.get("/whitelist-check", (req, res) => {
+  const clanTag = normalizeTag(req.query.clanTag);
+  if (!clanTag) {
+    return res.status(400).json({ error: "Parametro 'clanTag' mancante" });
+  }
+  const allowedTags = parseAllowedTags();
+  const allowed = allowedTags.length === 0 || allowedTags.includes(clanTag);
+  res.json({ allowed, clanTag });
 });
 
 // ROTTA UNIVERSALE PROXY
